@@ -67,6 +67,8 @@ export function createPatchFunction(backend) {
   let i, j
   const cbs: any = {}
 
+  // modules 用于给虚拟 dom 实现扩展功能
+  // 初始化 dom 操作
   const { modules, nodeOps } = backend
 
   for (i = 0; i < hooks.length; ++i) {
@@ -799,6 +801,9 @@ export function createPatchFunction(backend) {
   }
 
   return function patch(oldVnode, vnode, hydrating, removeOnly) {
+    // 1. 检查新 vnode 对象是否存在
+    // 如果新 vnode 对象不存在 ，触发 oldVnode 和其子节点vnode 对象中 destory 钩子， 并触发第三方模块的 destory 钩子函数
+    // return void
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -807,20 +812,34 @@ export function createPatchFunction(backend) {
     let isInitialPatch = false
     const insertedVnodeQueue: any[] = []
 
+    // 2. 检查 oldVnode 对象是否存在
+
+    // 不存在，也表明初始化 patch
     if (isUndef(oldVnode)) {
+      // 不挂挂载，可能是一个组件，根据创建新 vnode 对象创建 dom 元素
       // empty mount (likely as component), create new root element
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
+      // oldVnode 与 新vnode 都存在
+
+      // 3. 检查 oldVnode 对象是否是真实的 dom 元素
       const isRealElement = isDef(oldVnode.nodeType)
+
+      // 4. oldvnode 与 新 vnode 都是 vnode 对象，检查是否是 sameVnode
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
+        // 对于是 sameVnode ，调用 patchVnode 对比差异，将差异更新到 dom 上
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
-      } else {
+      }
+
+      // 5. oldvnode 是一个真实的 dom 对象
+      else {
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // 检查这是否是服务器渲染的内容
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
@@ -839,15 +858,19 @@ export function createPatchFunction(backend) {
               )
             }
           }
+
+          // 如果不是服务端渲染，创建一个空的 oldVnode 对象，并将 dom 对象保存到新创建的对象上
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
           oldVnode = emptyNodeAt(oldVnode)
         }
 
+        // 获取父级 dom 对象
         // replacing existing element
         const oldElm = oldVnode.elm
         const parentElm = nodeOps.parentNode(oldElm)
 
+        // 根据新 vnode 对象创建真实的 dom 对象，并添加到页面上
         // create new node
         createElm(
           vnode,
@@ -889,6 +912,7 @@ export function createPatchFunction(backend) {
           }
         }
 
+        // 删除 oldVnode 中真实的 dom 对象,并触发 三方模块或是 vnode对象中 vnodeData 中的 destory 钩子函数
         // destroy old node
         if (isDef(parentElm)) {
           removeVnodes([oldVnode], 0, 0)
@@ -898,7 +922,10 @@ export function createPatchFunction(backend) {
       }
     }
 
+    // 如果新 vnode 对象中 vnodeData.hook.insert 存在，此时会调用 insert 钩子函数
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
+
+    // 返回新vnode中的新创建的 dom
     return vnode.elm
   }
 }

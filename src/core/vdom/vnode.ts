@@ -2,6 +2,7 @@ import type { Component } from 'typescript/component'
 import type { ComponentOptions } from 'typescript/options'
 import type { VNodeComponentOptions, VNodeData } from 'typescript/vnode'
 
+// 创建 vnode 对象
 export default class VNode {
   tag?: string
   data: VNodeData | undefined
@@ -11,8 +12,8 @@ export default class VNode {
   ns?: string
   context?: Component // rendered in this component's scope
   key: string | number | undefined
-  componentOptions?: VNodeComponentOptions
-  componentInstance?: Component // component instance
+  componentOptions?: VNodeComponentOptions // 创建实例用到的组件选项
+  componentInstance?: Component // component instance // 组件实例
   parent: VNode | undefined | null // component placeholder node
 
   // strictly internal
@@ -73,6 +74,7 @@ export default class VNode {
   }
 }
 
+// 创建注释 vnode 对象
 export const createEmptyVNode = (text: string = '') => {
   const node = new VNode()
   node.text = text
@@ -80,6 +82,7 @@ export const createEmptyVNode = (text: string = '') => {
   return node
 }
 
+// 创建文本 vnode 对象
 export function createTextVNode(val: string | number) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
