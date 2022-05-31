@@ -146,6 +146,9 @@ export function createPatchFunction(backend) {
     const data = vnode.data
     const children = vnode.children
     const tag = vnode.tag
+
+    // 根据 tag 属性生成真实的 dom
+    // tag 属性定义了
     if (isDef(tag)) {
       if (__DEV__) {
         if (data && data.pre) {
@@ -163,12 +166,15 @@ export function createPatchFunction(backend) {
         }
       }
 
+      // 根据当前 vnode 对象的 tag 属性生成真实的 dom 对象并 挂载到 当前 vnode 的 elm 属性上
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
       setScope(vnode)
 
+      // 生成当前 vnode 对象的内容(文本节点 || 子节点)
       createChildren(vnode, children, insertedVnodeQueue)
+
       if (isDef(data)) {
         invokeCreateHooks(vnode, insertedVnodeQueue)
       }
@@ -177,10 +183,14 @@ export function createPatchFunction(backend) {
       if (__DEV__ && data && data.pre) {
         creatingElmInVPre--
       }
-    } else if (isTrue(vnode.isComment)) {
+    }
+    // 判断当前 vnode 对象是否是注释节点
+    else if (isTrue(vnode.isComment)) {
       vnode.elm = nodeOps.createComment(vnode.text)
       insert(parentElm, vnode.elm, refElm)
-    } else {
+    }
+    // 文本节点
+    else {
       vnode.elm = nodeOps.createTextNode(vnode.text)
       insert(parentElm, vnode.elm, refElm)
     }
@@ -494,8 +504,10 @@ export function createPatchFunction(backend) {
         oldEndVnode = oldCh[--oldEndIdx]
         newStartVnode = newCh[++newStartIdx]
       } else {
+        // oldVnode子节点 List 未匹配节点建立 key 合 index 的映射
         if (isUndef(oldKeyToIdx))
           oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
+
         idxInOld = isDef(newStartVnode.key)
           ? oldKeyToIdx[newStartVnode.key]
           : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
@@ -543,6 +555,7 @@ export function createPatchFunction(backend) {
         newStartVnode = newCh[++newStartIdx]
       }
     }
+
     if (oldStartIdx > oldEndIdx) {
       refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
       addVnodes(
@@ -591,6 +604,7 @@ export function createPatchFunction(backend) {
     index,
     removeOnly?: any
   ) {
+    // 新旧 vnode 对象不能够是同一个
     if (oldVnode === vnode) {
       return
     }
@@ -600,6 +614,7 @@ export function createPatchFunction(backend) {
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
+    // 复用 oldVnode 中的 dom
     const elm = (vnode.elm = oldVnode.elm)
 
     if (isTrue(oldVnode.isAsyncPlaceholder)) {
@@ -625,6 +640,7 @@ export function createPatchFunction(backend) {
       return
     }
 
+    // 调用新 vnode 中 vnodeData 中的 prepatch 钩子
     let i
     const data = vnode.data
     if (isDef(data) && isDef((i = data.hook)) && isDef((i = i.prepatch))) {
@@ -633,10 +649,13 @@ export function createPatchFunction(backend) {
 
     const oldCh = oldVnode.children
     const ch = vnode.children
+
+    // 是否是已经 patchVnode 过了，如果是调用第三方模块合 新 vnode vnodeData 中的  update 钩子
     if (isDef(data) && isPatchable(vnode)) {
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
       if (isDef((i = data.hook)) && isDef((i = i.update))) i(oldVnode, vnode)
     }
+
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
         if (oldCh !== ch)
