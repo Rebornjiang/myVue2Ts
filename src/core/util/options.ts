@@ -395,6 +395,12 @@ export function mergeOptions(
   child: Record<string, any>,
   vm?: Component | null
 ): ComponentOptions {
+  /*
+  parent  Vue 构造函数的 options
+  child 实例化组件 (实例) 传入的 options
+  */
+
+  // 检查 options.components , 当前组件的 子组件的命名是否符合规范
   if (__DEV__) {
     checkComponents(child)
   }
@@ -404,6 +410,7 @@ export function mergeOptions(
     child = child.options
   }
 
+  // 因为 组件 options.props, options.inject, directives 有多种定义的方法，现在需要规范
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
@@ -434,6 +441,7 @@ export function mergeOptions(
     }
   }
   function mergeField(key: any) {
+    // 合并规则的方法
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }
