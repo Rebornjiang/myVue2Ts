@@ -20,9 +20,11 @@ import {
 // normalization is needed - if any child is an Array, we flatten the whole
 // thing with Array.prototype.concat. It is guaranteed to be only 1-level deep
 // because functional components already normalize their own children.
+// 用于标准化模板编译生成的 render 函数里面的子节点
 export function simpleNormalizeChildren(children: any) {
   for (let i = 0; i < children.length; i++) {
     if (isArray(children[i])) {
+      // 对于函数式组件，进行拍平数组
       return Array.prototype.concat.apply([], children)
     }
   }
@@ -58,6 +60,7 @@ function normalizeArrayChildren(
     last = res[lastIndex]
     //  nested
     if (isArray(c)) {
+      // h('div', [['text1', 'text2']， 'text3']) 对于嵌套子内容的处理
       if (c.length > 0) {
         c = normalizeArrayChildren(c, `${nestedIndex || ''}_${i}`)
         // merge adjacent text nodes
@@ -69,6 +72,7 @@ function normalizeArrayChildren(
       }
     } else if (isPrimitive(c)) {
       if (isTextNode(last)) {
+        // 对于连续两个文本子节点，会将两个或两个以上的文本子节点进行合并称为一个 textVnode，如： h(div, ['text1', 'text2']), text1 & text2为连续两个文本子节点
         // merge adjacent text nodes
         // this is necessary for SSR hydration because text nodes are
         // essentially merged when rendered to HTML strings

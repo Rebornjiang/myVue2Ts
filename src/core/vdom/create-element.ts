@@ -31,11 +31,14 @@ export function createElement(
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 不存在 vnodeData 选项作的处理，
   if (isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
     data = undefined
   }
+
+  // 用户定义的 render 函数，在调用 h 函数创建 vnode 总是 normalizationType = 2
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
@@ -49,6 +52,7 @@ export function _createElement(
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // 检测 vnodeData 是否是响应式数据
   if (isDef(data) && isDef((data as any).__ob__)) {
     __DEV__ &&
       warn(
@@ -59,14 +63,19 @@ export function _createElement(
       )
     return createEmptyVNode()
   }
+
+  // 处理动态组件 <h :is="componentA" > </h>
   // object syntax in v-bind
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
+
   if (!tag) {
     // in case of component :is set to falsy value
     return createEmptyVNode()
   }
+
+  // key 值的检测，key 只能够是 Primitive Type
   // warn against non-primitive key
   if (__DEV__ && isDef(data) && isDef(data.key) && !isPrimitive(data.key)) {
     warn(
@@ -75,18 +84,20 @@ export function _createElement(
       context
     )
   }
+
   // support single function children as default scoped slot
   if (isArray(children) && typeof children[0] === 'function') {
     data = data || {}
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
-  // 如果是用户定义，既手写的 render 函数需要调用 normalizeChildren 方法来规范化所创建的 vnode的子节点
+  // 如果是用户定义，既手写的 render 函数需要调用 normalizeChildren 方法来规范化所创建的 vnode的子节点，所得到的子节点类型必须保证是 vnode[]
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
     children = simpleNormalizeChildren(children)
   }
+
   let vnode, ns
   if (typeof tag === 'string') {
     let Ctor
