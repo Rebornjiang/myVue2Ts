@@ -105,6 +105,8 @@ export function createComponent(
     return
   }
 
+  // Vue.options._base => 在初始化 vue 构造函数时赋值的，在 initGlobalApi 赋值的，然后初始化实例的时候 mergeOptions 时给到实例设置的
+  // baseCtor =  Vue 构造函数
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
