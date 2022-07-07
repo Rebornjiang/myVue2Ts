@@ -203,6 +203,7 @@ export function createPatchFunction(backend) {
       // 尝试调用创建 组件vnode 时所注册的 init 钩子
       if (isDef((i = i.hook)) && isDef((i = i.init))) {
         // init 方法主要是根据组件 vnode 来创建 组件实例
+        // init 方法执行完， 组件实例已经被创建，并且已经 patch 完成
         i(vnode, false /* hydrating */)
       }
       // after calling the init hook, if the vnode is a child component
@@ -210,7 +211,9 @@ export function createPatchFunction(backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
+        // 当前 组件 vnode 被存在了 insertedVnodeQueue 中
         initComponent(vnode, insertedVnodeQueue)
+        // 将 子组件patch 生成的 DOM 插入当前父组件内，子组件vnode所在的父Vnode真实dom上
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
@@ -221,7 +224,9 @@ export function createPatchFunction(backend) {
   }
 
   function initComponent(vnode, insertedVnodeQueue) {
+    // vnode.data.pendingInsert 存储着子组件模板转成的vnodeTree，其中vnodeTree中所有 vnode 有 insertHook
     if (isDef(vnode.data.pendingInsert)) {
+      // 将子组件的 vnode insertHook 添加到父组件中的 insertedVnodeQueue中 等待父组件 patch 完成之后执行
       insertedVnodeQueue.push.apply(
         insertedVnodeQueue,
         vnode.data.pendingInsert
@@ -820,7 +825,6 @@ export function createPatchFunction(backend) {
       return node.nodeType === (vnode.isComment ? 8 : 3)
     }
   }
-
   return function patch(oldVnode, vnode, hydrating, removeOnly) {
     // 1. 检查新 vnode 对象是否存在
     // 如果新 vnode 对象不存在 ，触发 oldVnode 和其子节点vnode 对象中 destory 钩子， 并触发第三方模块的 destory 钩子函数
@@ -944,6 +948,7 @@ export function createPatchFunction(backend) {
     }
 
     // 如果新 vnode 对象中 vnodeData.hook.insert 存在，此时会调用 insert 钩子函数
+
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
 
     // 返回新vnode中的新创建的 dom

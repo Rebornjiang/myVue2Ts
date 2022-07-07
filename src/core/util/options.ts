@@ -411,14 +411,19 @@ export function mergeOptions(
   }
 
   // 因为 组件 options.props, options.inject, directives 有多种定义的方法，现在需要规范
+  // props： array | object , normalizeProps 会将props 转换为 {prop1: {}, prop2:{}}
   normalizeProps(child, vm)
+
   normalizeInject(child, vm)
+
+  // directives{}， 支持对象声明，函数声明，最终会将函数转换为 {drective1: {bind(), update()}}
   normalizeDirectives(child)
 
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
+  // 当 child options 不是构造函数， 将 child.extends 和 mixins 递归都合并道 parent上
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)
