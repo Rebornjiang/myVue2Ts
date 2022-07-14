@@ -127,6 +127,7 @@ export function createComponent(
   let asyncFactory
   // @ts-expect-error
   if (isUndef(Ctor.cid)) {
+    // 对于异步组件其不是 Vue 构造函数，所以没有 cid 属性
     asyncFactory = Ctor
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor)
     if (Ctor === undefined) {

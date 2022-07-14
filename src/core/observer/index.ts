@@ -46,11 +46,16 @@ export class Observer {
     this.vmCount = 0
     def(value, '__ob__', this)
     if (isArray(value)) {
+      // 浏览器支持 原型
       if (hasProto) {
+        // arrayMethods =  Object.create(Array.prototype) + 重写 更改数组的 6个方法
         protoAugment(value, arrayMethods)
-      } else {
+      }
+      // 不支持原型，往 数据arr 身上添加 arrayMethods
+      else {
         copyAugment(value, arrayMethods, arrayKeys)
       }
+      // 将数组的 item 调用 observe 转换为响应式
       this.observeArray(value)
     } else {
       this.walk(value)

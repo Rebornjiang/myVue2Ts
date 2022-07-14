@@ -12,15 +12,18 @@ export function initAssetRegisters(Vue: GlobalAPI) {
       id: string,
       definition?: Function | Object
     ): Function | Object | void {
+      // 一个参数为了获取
       if (!definition) {
         return this.options[type + 's'][id]
       } else {
+        // 两个参数定义
         /* istanbul ignore if */
         if (__DEV__ && type === 'component') {
           validateComponentName(id)
         }
         if (type === 'component' && isPlainObject(definition)) {
           // @ts-expect-error
+          // 基于 Vue 构造函数和创建组件的 options 创建子构造函数
           definition.name = definition.name || id
           definition = this.options._base.extend(definition)
         }

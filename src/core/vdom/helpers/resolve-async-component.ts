@@ -16,9 +16,12 @@ import type { VNodeData } from 'typescript/vnode'
 import type { Component } from 'typescript/component'
 
 function ensureCtor(comp: any, base) {
+  // 确保能够拿到 组件options
   if (comp.__esModule || (hasSymbol && comp[Symbol.toStringTag] === 'Module')) {
     comp = comp.default
   }
+
+  // 根据 options 转换为基于父组件构造函数创建的子构造函数
   return isObject(comp) ? base.extend(comp) : comp
 }
 
@@ -46,7 +49,7 @@ export function resolveAsyncComponent(
   if (isDef(factory.resolved)) {
     return factory.resolved
   }
-
+  // 这个是父组件，
   const owner = currentRenderingInstance
   if (owner && isDef(factory.owners) && factory.owners.indexOf(owner) === -1) {
     // already pending
@@ -57,6 +60,7 @@ export function resolveAsyncComponent(
     return factory.loadingComp
   }
 
+  // 初始创建异步组件走这里
   if (owner && !isDef(factory.owners)) {
     const owners = (factory.owners = [owner])
     let sync = true

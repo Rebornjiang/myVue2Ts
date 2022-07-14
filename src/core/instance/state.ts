@@ -50,6 +50,8 @@ export function initState(vm: Component) {
   vm._watchers = []
   const opts = vm.$options
   if (opts.props) initProps(vm, opts.props)
+  // 1. 校验 methods 中定义的 fn， 不能够与 props 中重复，也必须是函数
+  // 2. 将 methods 中定义的 fn 挂载到 vm 上
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
     initData(vm)
@@ -63,6 +65,7 @@ export function initState(vm: Component) {
 }
 
 function initProps(vm: Component, propsOptions: Object) {
+  // propsData 在创建组件 vnode 的时候得到的
   const propsData = vm.$options.propsData || {}
   const props = (vm._props = {})
   // cache prop keys so that future props updates can iterate using Array
