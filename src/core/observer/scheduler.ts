@@ -61,6 +61,8 @@ if (inBrowser && !isIE) {
 /**
  * Flush both queues and run the watchers.
  */
+// 当 flushScheduler 执行就代表所有的同步代码已经执行完毕，只要变化的响应式数据，
+// 都已经通知了所有的 watcher了，这也意味者所有的 watcher 都已经被添加到了 queue 中了
 function flushSchedulerQueue() {
   currentFlushTimestamp = getNow()
   flushing = true
@@ -162,6 +164,7 @@ export function queueWatcher(watcher: Watcher) {
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
+      // 当执行 watcher.run 时添加的 watcher，在 queue 中找到合适的位置
       let i = queue.length - 1
       while (i > index && queue[i].id > watcher.id) {
         i--
@@ -169,6 +172,7 @@ export function queueWatcher(watcher: Watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
+    // 同时又 渲染 watcher 与 computed watcher 被 update，只会执行一次  nextTick(flushSchedulerQueue)
     if (!waiting) {
       waiting = true
 

@@ -82,10 +82,13 @@ export default class Watcher implements DepTarget {
     this.id = ++uid // uid for batching
     this.active = true
     this.dirty = this.lazy // for lazy watchers
+
+    // 存储的是 dep 实例, 帮助 dep 管理 watcher，避免 dep 重复添加 watcher，删除不在依赖 dep 的 watcher
     this.deps = []
     this.newDeps = []
     this.depIds = new Set()
     this.newDepIds = new Set()
+
     this.expression = __DEV__ ? expOrFn.toString() : ''
     // parse expression for getter
     if (typeof expOrFn === 'function') {
