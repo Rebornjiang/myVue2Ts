@@ -94,6 +94,7 @@ export default class Watcher implements DepTarget {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 对于初始化侦听器 watcher 会走这里
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
@@ -106,6 +107,8 @@ export default class Watcher implements DepTarget {
           )
       }
     }
+    // computed Watcher lazy 才为 true
+    // 渲染 watcher & 侦听器 watcher 都为false
     this.value = this.lazy ? undefined : this.get()
   }
 
@@ -184,6 +187,7 @@ export default class Watcher implements DepTarget {
     } else if (this.scheduler) {
       this.scheduler(this.run)
     } else {
+      // 对于渲染 watcher 和 侦听器 watcher 才会走这里
       queueWatcher(this)
     }
   }

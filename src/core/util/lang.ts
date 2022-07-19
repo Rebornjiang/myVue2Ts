@@ -34,12 +34,26 @@ export function parsePath(path: string): any {
   if (bailRE.test(path)) {
     return
   }
+  // 将路径通过 . 分隔符进行分段
   const segments = path.split('.')
+  // obj 为 vm
   return function (obj) {
     for (let i = 0; i < segments.length; i++) {
       if (!obj) return
+      /*
+      一、对于普通响应式数据（watch options 中的key 为data中定义的 属性）：
+      1.此处触发响应式数据的 getter，进行依赖手机，将响应式数据与 当前侦听器 watcher 进行互相关联
+
+      二、对于 computed（watchOptions 中的 key 为 computed 中的属性） ：
+      1. 触发了 computed 的 getter 方法
+      2. 在computed getter 中会判断 computedWatcher 此前是否已经计算过，没有计算过 调用 watcher.evaluate 会进行计算，
+      3. 在计算过程中会为 computedWatcher 进行依赖收集
+      4. 计算完成之后会为 watchWatcher 进行依赖收集，computedWatcher 所收集的 deps 也添加到 watchWatcher 里面，同时 depItem 也将watchWatcher 存在自己的 subs 里面
+      5. 对于监听 computed 来说，computed所依赖的响应式数据对应的dep 的 subs 同时会存在与 computedWatcher、watchWatcher、
+      */
       obj = obj[segments[i]]
     }
+    // obj = value
     return obj
   }
 }

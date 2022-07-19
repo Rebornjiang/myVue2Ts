@@ -293,6 +293,7 @@ function initMethods(vm: Component, methods: Object) {
 function initWatch(vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
+    // 有可能是数组的，Vue.mixin 进行了全局混入了 watch，那么在 mergeOptions 的时候会将其合并为数组
     if (isArray(handler)) {
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
@@ -369,6 +370,7 @@ export function stateMixin(Vue: Component) {
     const watcher = new Watcher(vm, expOrFn, cb, options)
     if (options.immediate) {
       const info = `callback for immediate watcher "${watcher.expression}"`
+      // pushTarget 空目的，在触发 handler 禁止进行依赖收集
       pushTarget()
       invokeWithErrorHandling(cb, vm, [watcher.value], vm, info)
       popTarget()
