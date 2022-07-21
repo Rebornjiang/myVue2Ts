@@ -210,6 +210,7 @@ export default class Watcher implements DepTarget {
         // set new value
         const oldValue = this.value
         this.value = value
+        // 侦听器 watcher 触发 handler Callback
         if (this.user) {
           const info = `callback for watcher "${this.expression}"`
           invokeWithErrorHandling(
