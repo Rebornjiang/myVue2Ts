@@ -647,7 +647,7 @@ export function createPatchFunction(backend) {
       return
     }
 
-    // 调用新 vnode 中 vnodeData 中的 prepatch 钩子
+    // 1. 调用新 vnode 中 vnodeData 中的 prepatch 钩子
     let i
     const data = vnode.data
     if (isDef(data) && isDef((i = data.hook)) && isDef((i = i.prepatch))) {
@@ -657,12 +657,13 @@ export function createPatchFunction(backend) {
     const oldCh = oldVnode.children
     const ch = vnode.children
 
-    // 是否是已经 patchVnode 过了，如果是调用第三方模块合 新 vnode vnodeData 中的  update 钩子
+    // 2. 执行 update 钩子
     if (isDef(data) && isPatchable(vnode)) {
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
       if (isDef((i = data.hook)) && isDef((i = i.update))) i(oldVnode, vnode)
     }
 
+    // 3. 完成 patch 过程，对比内容
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
         if (oldCh !== ch)
