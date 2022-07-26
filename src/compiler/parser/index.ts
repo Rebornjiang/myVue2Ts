@@ -203,6 +203,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
     }
   }
 
+  // 解析 HTML string
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
@@ -224,6 +225,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
         attrs = guardIESVGBug(attrs)
       }
 
+      // 根据 parseHtml 解析的标签的信息，转换为 AST 对象
       let element: ASTElement = createASTElement(tag, attrs, currentParent)
       if (ns) {
         element.ns = ns
@@ -287,6 +289,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
         processOnce(element)
       }
 
+      // 第一个开始标签标记为 root
       if (!root) {
         root = element
         if (__DEV__) {
@@ -295,7 +298,9 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
       }
 
       if (!unary) {
+        // 非一元标签，将当前标签设置为 parent，在解析其子节点好建立父子关系
         currentParent = element
+        // 这里与 parseHtml 中的 stack 变量用途应该是一样的
         stack.push(element)
       } else {
         closeElement(element)
@@ -303,10 +308,12 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
     },
 
     end(tag, start, end) {
+      // 开始标签与结束标签相匹配之后，弹出栈，重新标记父元素
       const element = stack[stack.length - 1]
       // pop stack
       stack.length -= 1
       currentParent = stack[stack.length - 1]
+
       if (__DEV__ && options.outputSourceRange) {
         element.end = end
       }

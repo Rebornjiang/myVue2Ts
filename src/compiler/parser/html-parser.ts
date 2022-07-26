@@ -16,6 +16,11 @@ import { unicodeRegExp } from 'core/util/lang'
 // Regular Expressions for parsing tags and attributes
 const attribute =
   /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
+/**
+ * <div  :class = "clearfix" v-model="inputVal">
+ * 1. ([^\s"'<>\/=]+) 这个就匹配到 key = class；
+ * */
+// (?: pattern) 表示匹配结果，但不进行分组捕获如：industr(?:y|ies) = industry | industries
 const dynamicArgAttribute =
   /^\s*((?:v-[\w-]+:|@|:|#)\[[^=]+?\][^\s"'<>\/=]*)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
 const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z${unicodeRegExp.source}]*`
@@ -24,6 +29,7 @@ const startTagOpen = new RegExp(`^<${qnameCapture}`)
 const startTagClose = /^\s*(\/?)>/
 const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`)
 const doctype = /^<!DOCTYPE [^>]+>/i
+// [^>] 表示取反，除了 > 都可以
 // #7298: escape - to avoid being passed as HTML comment when inlined in page
 const comment = /^<!\--/
 const conditionalComment = /^<!\[/
@@ -65,6 +71,7 @@ export function parseHTML(html, options) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
     if (!lastTag || !isPlainTextElement(lastTag)) {
+      // isPlainTextElement = 如果是 script,style,textarea 标签返回 true，否则 undefined
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
         // Comment:
@@ -95,6 +102,7 @@ export function parseHTML(html, options) {
         }
 
         // Doctype:
+        // match 方法匹配到返回 arr， 没有匹配到返回 null
         const doctypeMatch = html.match(doctype)
         if (doctypeMatch) {
           advance(doctypeMatch[0].length)
@@ -121,6 +129,7 @@ export function parseHTML(html, options) {
         }
       }
 
+      // textEnd 之前的都为文本内容
       let text, rest, next
       if (textEnd >= 0) {
         rest = html.slice(textEnd)
@@ -148,6 +157,7 @@ export function parseHTML(html, options) {
       }
 
       if (options.chars && text) {
+        // 解析 标签的内容，给父元素添加 文本子节点
         options.chars(text, index - text.length, index)
       }
     } else {
@@ -200,6 +210,8 @@ export function parseHTML(html, options) {
 
   function parseStartTag() {
     const start = html.match(startTagOpen)
+    // 1. 匹配开始标签
+    // start 存在即匹配到标签，其中 start[0] = <div （整个正则匹配到的结果） ; start[1] = div （分组匹配的结果）
     if (start) {
       const match: any = {
         tagName: start[1],
@@ -207,7 +219,10 @@ export function parseHTML(html, options) {
         start: index
       }
       advance(start[0].length)
+
+      // 2. 匹配属性并将其存储到 attrs 数组中
       let end, attr
+      // 判断条件， 非开始标签的 闭合内容如：  <App /> 中的 />
       while (
         !(end = html.match(startTagClose)) &&
         (attr = html.match(dynamicArgAttribute) || html.match(attribute))
@@ -218,6 +233,7 @@ export function parseHTML(html, options) {
         match.attrs.push(attr)
       }
       if (end) {
+        // unarySlash 判断是否是一元标签 如：<app /> 这个就是
         match.unarySlash = end[1]
         advance(end[0].length)
         match.end = index
@@ -241,15 +257,21 @@ export function parseHTML(html, options) {
 
     const unary = isUnaryTag(tagName) || !!unarySlash
 
+    // 处理匹配到的标签属性
     const l = match.attrs.length
     const attrs = new Array(l)
     for (let i = 0; i < l; i++) {
       const args = match.attrs[i]
+
+      // 根据分组捕获的结果，3 ，4 ，5 为 atr 的 value
       const value = args[3] || args[4] || args[5] || ''
+
       const shouldDecodeNewlines =
         tagName === 'a' && args[1] === 'href'
           ? options.shouldDecodeNewlinesForHref
           : options.shouldDecodeNewlines
+
+      // 记录 atr 的key 、value
       attrs[i] = {
         name: args[1],
         value: decodeAttr(value, shouldDecodeNewlines)
@@ -260,6 +282,13 @@ export function parseHTML(html, options) {
       }
     }
 
+    // 对于非一元标签，需要将结果存入 stack 中，这样的目的是为了是与 闭口标签一一对应，因为栈顶值始终会与所遇到的第一个闭口标签是匹配关系
+    /**
+     * <div>
+     *   <h1>text</h1>
+     * </div>
+     *
+     * */
     if (!unary) {
       stack.push({
         tag: tagName,
@@ -268,10 +297,12 @@ export function parseHTML(html, options) {
         start: match.start,
         end: match.end
       })
+      // 每处里完一个 开始标签，就将 lastTag 记录为开始标签的 tag，为了接下来遇到 闭口标签做处理。
       lastTag = tagName
     }
 
     if (options.start) {
+      // 将处理的结果调用 start 方法转换为 AST Element 对象
       options.start(tagName, attrs, unary, match.start, match.end)
     }
   }
