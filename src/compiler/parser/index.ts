@@ -111,10 +111,15 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
   }
 
   function closeElement(element) {
+    // 匹配到结束标签，意味着当前标签已经匹配结束，对 ASTELm 进行收尾处理
+    // 1. 对于当前标签子节点是空白节点需要从 ASTElm 对象中 children prop中清空
     trimEndingWhitespace(element)
+
+    // 2. 当前 ASTElm 未加工完成，需继续处理，结合 vue 语法处理标签属性
     if (!inVPre && !element.processed) {
       element = processElement(element, options)
     }
+
     // tree management
     if (!stack.length && element !== root) {
       // allow root elements with v-if, v-else-if and v-else
@@ -135,6 +140,8 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
         )
       }
     }
+
+    // 找到父元素，将自己push 进去
     if (currentParent && !element.forbidden) {
       if (element.elseif || element.else) {
         processIfConditions(element, currentParent)
@@ -153,6 +160,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
       }
     }
 
+    // 当前组件标签内的 插槽内容不属于自己的children
     // final children cleanup
     // filter out scoped slots
     element.children = element.children.filter(c => !c.slotScope)
@@ -319,8 +327,8 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
       }
       closeElement(element)
     },
-
     chars(text: string, start: number, end: number) {
+      // 处理标签内的 文本内容，
       if (!currentParent) {
         if (__DEV__) {
           if (text === template) {
@@ -346,6 +354,8 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
         return
       }
       const children = currentParent.children
+
+      // 去掉空白字符之后，任然存在的是文本内容，要一次缓存，做缓存对文本使用 dom 元素来进行 decode，有什么用？
       if (inPre || text.trim()) {
         text = isTextTag(currentParent)
           ? text
@@ -369,9 +379,13 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
           // condense consecutive whitespaces into single space
           text = text.replace(whitespaceRE, ' ')
         }
+
+        // 将文本准备转换为 ASTElm
         let res
         let child: ASTNode | undefined
+        // 解析文本内容，对于如果是插值表达式直接进行解析，并转换为 render 字符串，例如{{msg}} =》 _s(msg)
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+          // type： 2； 带 {{}}
           child = {
             type: 2,
             expression: res.expression,
@@ -383,6 +397,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
           !children.length ||
           children[children.length - 1].text !== ' '
         ) {
+          // type: 3； 纯静态文本
           child = {
             type: 3,
             text
@@ -393,6 +408,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
             child.start = start
             child.end = end
           }
+          // 作为标签 AstELm 的子元素
           children.push(child)
         }
       }

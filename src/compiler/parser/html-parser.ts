@@ -313,6 +313,8 @@ export function parseHTML(html, options) {
     if (end == null) end = index
 
     // Find the closest opened tag of the same type
+    // pos: 代表目前栈中与当前解析所遇见的闭口标签  对应的开口标签的 idx 位置
+    // 按照正常情况 栈顶值即是对应开口标签
     if (tagName) {
       lowerCasedTagName = tagName.toLowerCase()
       for (pos = stack.length - 1; pos >= 0; pos--) {
@@ -328,12 +330,15 @@ export function parseHTML(html, options) {
     if (pos >= 0) {
       // Close all the open elements, up the stack
       for (let i = stack.length - 1; i >= pos; i--) {
+        // i > pos 代表有 未闭合标签
         if (__DEV__ && (i > pos || !tagName) && options.warn) {
           options.warn(`tag <${stack[i].tag}> has no matching end tag.`, {
             start: stack[i].start,
             end: stack[i].end
           })
         }
+
+        // 调用 end 方法解析 闭口标签所对应开口标签 ASTELm
         if (options.end) {
           options.end(stack[i].tag, start, end)
         }
