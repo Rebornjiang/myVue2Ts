@@ -130,8 +130,13 @@ export function parseHTML(html, options) {
       }
 
       // textEnd 之前的都为文本内容
+
       let text, rest, next
       if (textEnd >= 0) {
+        /**
+         * 这个 rest 主要处理文本中拥有 < 括号的情况
+         * <li>{{msg}} < {{data}}</li>
+         * */
         rest = html.slice(textEnd)
         while (
           !endTag.test(rest) &&
@@ -145,9 +150,11 @@ export function parseHTML(html, options) {
           textEnd += next
           rest = html.slice(textEnd)
         }
+        // 最终确定真实的文本内容
         text = html.substring(0, textEnd)
       }
 
+      // textEnd < 0 表示 html 中 < 不存在了
       if (textEnd < 0) {
         text = html
       }
@@ -161,6 +168,8 @@ export function parseHTML(html, options) {
         options.chars(text, index - text.length, index)
       }
     } else {
+      // 当 lastTag 即 处理完 script，style，textarea 的开始标签时，接下来会走这个逻辑分支
+      // 需要注意的时：script，style 不能够写在 vue 模板中的
       let endTagLength = 0
       const stackedTag = lastTag.toLowerCase()
       const reStackedTag =
@@ -246,6 +255,16 @@ export function parseHTML(html, options) {
     const tagName = match.tagName
     const unarySlash = match.unarySlash
 
+    // 对于 p 标签的处理，p 标签不能够嵌套非文本相关的标签，
+    // 如果嵌套了，这里的处理逻辑跟浏览器一样
+    /**
+     *
+     * <p> <div></div </p>
+     * 处理后:
+     * <p></p>
+     * <div></div>
+     * <p></p>
+     * */
     if (expectHTML) {
       if (lastTag === 'p' && isNonPhrasingTag(tagName)) {
         parseEndTag(lastTag)

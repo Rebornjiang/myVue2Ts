@@ -39,6 +39,7 @@ function genStaticKeys(keys: string): Function {
 function markStatic(node: ASTNode) {
   node.static = isStatic(node)
   if (node.type === 1) {
+    // 不能够将组件插槽标记为静态的
     // do not make component slot content static. this avoids
     // 1. components not able to mutate slot nodes
     // 2. static slot content fails for hot-reloading
@@ -52,6 +53,7 @@ function markStatic(node: ASTNode) {
     for (let i = 0, l = node.children.length; i < l; i++) {
       const child = node.children[i]
       markStatic(child)
+      // 如果子内容不是静态节点,父节点不管原来是什么节点,也会将静态标记设置为false
       if (!child.static) {
         node.static = false
       }
@@ -108,6 +110,23 @@ function isStatic(node: ASTNode): boolean {
     // text
     return true
   }
+
+  //<span :dynamic="prop" @click="handleClick" v-pre>{{msg}} </span>
+  // 对于上面这样的节点, 如果 带有 v-pre, parse 解析时, AST Node 将会有 pre 标记为 true
+  /***
+   * AST Node 对象
+   *attrsList: [{…}]
+    attrsMap: {v-pre: '', :remaindynamicprop: 'nnnnn'}
+    children: []
+    end: 226
+    parent: {type: 1, tag: 'div', attrsList: Array(1), attrsMap: {…}, rawAttrsMap: {…}, …}
+    pre: true
+    rawAttrsMap: {v-pre: {…}, :remaindynamicprop: {…}}
+    start: 184
+    tag: "span"
+    type: 1 
+  * 
+   **/
   return !!(
     node.pre ||
     (!node.hasBindings && // no dynamic bindings

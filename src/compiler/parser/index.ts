@@ -121,6 +121,12 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
     }
 
     // tree management
+    // 这是多个根节点,以下这种情况
+    /**
+     * <div>hello</div>
+     * <div>world</div>
+     *
+     * */
     if (!stack.length && element !== root) {
       // allow root elements with v-if, v-else-if and v-else
       if (root.if && (element.elseif || element.else)) {
@@ -132,6 +138,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
           block: element
         })
       } else if (__DEV__) {
+        // 多个根节点，但是没有使用 v-if 、v-else-if、v-else、
         warnOnce(
           `Component template should contain exactly one root element. ` +
             `If you are using v-if on multiple elements, ` +
@@ -261,7 +268,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
           }
         })
       }
-
+      // 禁止在模板中使用又副作用的 script， style 标签
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         __DEV__ &&
@@ -276,6 +283,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
 
       // apply pre-transforms
       for (let i = 0; i < preTransforms.length; i++) {
+        // 对于 v-model 进行处理
         element = preTransforms[i](element, options) || element
       }
 
@@ -301,6 +309,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
       if (!root) {
         root = element
         if (__DEV__) {
+          // 检查根节点是否符合规范
           checkRootConstraints(root)
         }
       }
