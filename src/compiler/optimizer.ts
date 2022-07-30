@@ -21,6 +21,8 @@ export function optimize(
   options: CompilerOptions
 ) {
   if (!root) return
+  // isTaticKey 是一个函数,用于从缓存的 map 对象取值,map 对象的 key 为 存在staticKey,类似 { staticKey: true }
+  // 存在的 staticKey 由 baseOptions中定义 + 默认的 staticKey
   isStaticKey = genStaticKeysCached(options.staticKeys || '')
   isPlatformReservedTag = options.isReservedTag || no
   // first pass: mark all non-static nodes.
@@ -58,6 +60,8 @@ function markStatic(node: ASTNode) {
         node.static = false
       }
     }
+
+    //
     if (node.ifConditions) {
       for (let i = 1, l = node.ifConditions.length; i < l; i++) {
         const block = node.ifConditions[i].block
@@ -71,13 +75,25 @@ function markStatic(node: ASTNode) {
 }
 
 function markStaticRoots(node: ASTNode, isInFor: boolean) {
+  // 仅对 标签AST进行标记
   if (node.type === 1) {
     if (node.static || node.once) {
+      // 记录当前静态节点是否在 for 循环节点里面
       node.staticInFor = isInFor
     }
     // For a node to qualify as a static root, it should have children that
     // are not just static text. Otherwise the cost of hoisting out will
     // outweigh the benefits and it's better off to just always render it fresh.
+    /**
+     * 静态根节点需要满足:
+     * 属于静态节点
+     * 元素节点
+     * 拥有 >= 1个的子节点
+     * 子节点不能够是纯文本节点
+     *
+     * 以下不会被标记文 statickRoot:
+     * <span>我是一个纯文本节点</span>
+     * */
     if (
       node.static &&
       node.children.length &&
@@ -88,11 +104,15 @@ function markStaticRoots(node: ASTNode, isInFor: boolean) {
     } else {
       node.staticRoot = false
     }
+
+    // 如果有 children 进行递归处理
     if (node.children) {
       for (let i = 0, l = node.children.length; i < l; i++) {
         markStaticRoots(node.children[i], isInFor || !!node.for)
       }
     }
+
+    // 当前节点如果是 v-if 节点,需要处理其 v-esle,v-else-if 节点
     if (node.ifConditions) {
       for (let i = 1, l = node.ifConditions.length; i < l; i++) {
         markStaticRoots(node.ifConditions[i].block, isInFor)
@@ -127,15 +147,19 @@ function isStatic(node: ASTNode): boolean {
     type: 1 
   * 
    **/
+
+  // v-pre 节点一定是静态节点
   return !!(
-    node.pre ||
-    (!node.hasBindings && // no dynamic bindings
-      !node.if &&
-      !node.for && // not v-if or v-for or v-else
-      !isBuiltInTag(node.tag) && // not a built-in
-      isPlatformReservedTag(node.tag) && // not a component
-      !isDirectChildOfTemplateFor(node) &&
-      Object.keys(node).every(isStaticKey))
+    (
+      node.pre ||
+      (!node.hasBindings && // no dynamic bindings
+        !node.if &&
+        !node.for && // not v-if or v-for or v-else
+        !isBuiltInTag(node.tag) && // not a built-in ,非 slot 和 component
+        isPlatformReservedTag(node.tag) && // not a component ,是平台保留标签
+        !isDirectChildOfTemplateFor(node) && // 不能够是 v-for 节点的子节点
+        Object.keys(node).every(isStaticKey))
+    ) // 当前 AST 节点的所有 属性必须满足 staticKey,这里的 staticKey 可以理解成: 非vue语法的标签AST所拥有的最基本的属性
   )
 }
 
