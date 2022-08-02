@@ -84,6 +84,8 @@ export function genElement(el: ASTElement, state: CodegenState): string {
     if (el.component) {
       code = genComponent(el.component, el, state)
     } else {
+      // 普通的元素
+      // 1. 根据 ASTNode 生成 vnodeData
       let data
       if (!el.plain || (el.pre && state.maybeComponent(el))) {
         data = genData(el, state)
@@ -230,6 +232,7 @@ export function genData(el: ASTElement, state: CodegenState): string {
 
   // directives first.
   // directives may mutate the el's other properties before they are generated.
+  // 首先是指令，指令在生成之前可能会改变其他 Elm 属性
   const dirs = genDirectives(el, state)
   if (dirs) data += dirs + ','
 
@@ -252,6 +255,7 @@ export function genData(el: ASTElement, state: CodegenState): string {
   if (el.component) {
     data += `tag:"${el.tag}",`
   }
+  // 模块中用于生成 vnodeData 函数调用， web 平台默认为是对： class， style 生成，
   // module data generation functions
   for (let i = 0; i < state.dataGenFns.length; i++) {
     data += state.dataGenFns[i](el)
@@ -471,7 +475,9 @@ export function genChildren(
   const children = el.children
   if (children.length) {
     const el: any = children[0]
+    // 1. 得到 normalization type 类型
     // optimize single v-for
+    // 节点下只有 v-for 子节点，如果 v-for 是 组件 type = 1，否则 type = 0
     if (
       children.length === 1 &&
       el.for &&
@@ -485,10 +491,15 @@ export function genChildren(
         : ``
       return `${(altGenElement || genElement)(el, state)}${normalizationType}`
     }
+    // normalizationType 判断是否需要格式 vnode 子内容，这个结过会在调用 render 函数的时候会用到
     const normalizationType = checkSkip
       ? getNormalizationType(children, state.maybeComponent)
       : 0
+
+    // 2. 生成子节点
     const gen = altGenNode || genNode
+
+    // 3. 代码拼接，type = 0 的话不需要进行 normalization
     return `[${children.map(c => gen(c, state)).join(',')}]${
       normalizationType ? `,${normalizationType}` : ''
     }`
@@ -509,6 +520,8 @@ function getNormalizationType(
     if (el.type !== 1) {
       continue
     }
+
+    // v-for 节点需要被标准化， type = 2
     if (
       needsNormalization(el) ||
       (el.ifConditions &&
@@ -517,6 +530,8 @@ function getNormalizationType(
       res = 2
       break
     }
+
+    // 组件节点需要被标准化， type = 1
     if (
       maybeComponent(el) ||
       (el.ifConditions && el.ifConditions.some(c => maybeComponent(c.block)))
@@ -532,16 +547,24 @@ function needsNormalization(el: ASTElement): boolean {
 }
 
 function genNode(node: ASTNode, state: CodegenState): string {
+  // genNode 用于处理子节点，
+
+  // 1. 如果当前子节点是标签节点，继续调用 genElement 处理
   if (node.type === 1) {
     return genElement(node, state)
   } else if (node.type === 3 && node.isComment) {
+    // 生成注释节点
     return genComment(node)
   } else {
+    // 生成 文本节点：
+    // - 如果文本节点带插值表达式，直接返回 ASTNode.expression
+    //
     return genText(node)
   }
 }
 
 export function genText(text: ASTText | ASTExpression): string {
+  // JSON.stringify 为了返回字符串，如输出字符串： "hello"    => '"hello"'
   return `_v(${
     text.type === 2
       ? text.expression // no need for () because already wrapped in _s()

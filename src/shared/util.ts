@@ -83,6 +83,9 @@ export function isPromise(val: any): boolean {
  * Convert a value to a string that is actually rendered.
  */
 export function toString(val: any): string {
+  // 将 value 转换为字符串：
+  // obj || arr => 通过 JSON.stringify 转换
+  // other => 调用 String
   return val == null
     ? ''
     : Array.isArray(val) || (isPlainObject(val) && val.toString === _toString)

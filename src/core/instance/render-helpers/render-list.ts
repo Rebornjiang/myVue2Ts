@@ -24,6 +24,7 @@ export function renderList(
       ret[i] = render(i + 1, i)
     }
   } else if (isObject(val)) {
+    // 当前 obj 有迭代接口，数据结构可能为 map, set
     if (hasSymbol && val[Symbol.iterator]) {
       ret = []
       const iterator: Iterator<any> = val[Symbol.iterator]()
@@ -33,6 +34,7 @@ export function renderList(
         result = iterator.next()
       }
     } else {
+      // Object.keys ， 当前对象自身属性，可枚举，非 Symbol Key
       keys = Object.keys(val)
       ret = new Array(keys.length)
       for (i = 0, l = keys.length; i < l; i++) {

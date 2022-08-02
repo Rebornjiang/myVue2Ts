@@ -474,6 +474,7 @@ export function processElement(element: ASTElement, options: CompilerOptions) {
 
   // determine whether this is a plain element after
   // removing structural attributes
+  // 确定这是否是一个普通元素
   element.plain =
     !element.key && !element.scopedSlots && !element.attrsList.length
 
