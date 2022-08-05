@@ -17,6 +17,7 @@ import { unicodeRegExp } from 'core/util/lang'
 const attribute =
   /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
 /**
+ * 在字符串转正则中(new RegExp)的时候：例如 new RegExp("\d") => 字符串 \d 中的 \ 解析为转义符这样会导致转正则的结果为 /d/,所以字符串中需要 \\ 表示转移第二个转义符，
  * <div  :class = "clearfix" v-model="inputVal">
  * 1. ([^\s"'<>\/=]+) 这个就匹配到 key = class；
  * */
@@ -30,6 +31,9 @@ const startTagClose = /^\s*(\/?)>/
 const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`)
 const doctype = /^<!DOCTYPE [^>]+>/i
 // [^>] 表示取反，除了 > 都可以
+// [] 中的特殊字符 . + * ? 等都会失效，即使转移仅表示普通字符， 除了 - 表示区间，\- 表示 符合-
+// console.log('test', /\a/.test("a")) =》 true, 正则中  一个反斜杠+一个字符， 如果非正则规定的意思（例如： \d 表示匹配数字，\a 表示非正则规定的意思）， 这个反斜杠仅表示转义，不影响匹配
+
 // #7298: escape - to avoid being passed as HTML comment when inlined in page
 const comment = /^<!\--/
 const conditionalComment = /^<!\[/
@@ -71,7 +75,7 @@ export function parseHTML(html, options) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
     if (!lastTag || !isPlainTextElement(lastTag)) {
-      // isPlainTextElement = 如果是 script,style,textarea 标签返回 true，否则 undefined
+      // isPlainTextElement = 如果 lastTag 是 script,style,textarea 标签返回 true，否则 undefined
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
         // Comment:
@@ -144,6 +148,7 @@ export function parseHTML(html, options) {
           !comment.test(rest) &&
           !conditionalComment.test(rest)
         ) {
+          // 这个是处理文本中有 < 的情况
           // < in plain text, be forgiving and treat it as text
           next = rest.indexOf('<', 1)
           if (next < 0) break

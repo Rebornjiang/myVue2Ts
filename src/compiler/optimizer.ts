@@ -85,11 +85,10 @@ function markStaticRoots(node: ASTNode, isInFor: boolean) {
     // are not just static text. Otherwise the cost of hoisting out will
     // outweigh the benefits and it's better off to just always render it fresh.
     /**
-     * 静态根节点需要满足:
+     * 静态根节点需要同时满足下面三个条件:
      * 属于静态节点
      * 元素节点
-     * 拥有 >= 1个的子节点
-     * 子节点不能够是纯文本节点
+     * 拥有 >1个的子节点 || 子节点不能够是纯文本节点 type != 3 （type 只可能 = 1）
      *
      * 以下不会被标记文 statickRoot:
      * <span>我是一个纯文本节点</span>

@@ -287,16 +287,26 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
         element = preTransforms[i](element, options) || element
       }
 
+      /***
+       * 尝试看看当前 标签是否是 用了 v-pre 指令，如果用了再次将其进行标记为 true，
+       *  接下来在 closeElement 的时候不在 processAttrs vue 语法 ,也就意味着 当前标签的 children 将所有的 attrs 将不会得到解析
+       * 一直到当前标签元素全部处理完成弹出栈，接下来
+       *
+       *
+       * */
       if (!inVPre) {
         processPre(element)
         if (element.pre) {
           inVPre = true
         }
       }
+
+      // web 平台下 tag === pre，也会将 inPre 标记为 true
       if (platformIsPreTag(element.tag)) {
         inPre = true
       }
       if (inVPre) {
+        // 处理原生属性，并给 ast 对象添加 attrs 属性
         processRawAttrs(element)
       } else if (!element.processed) {
         // structural directives
@@ -474,7 +484,7 @@ export function processElement(element: ASTElement, options: CompilerOptions) {
 
   // determine whether this is a plain element after
   // removing structural attributes
-  // 确定这是否是一个普通元素
+  // 确定这是否是一个普通元素, 当前标签没有属性
   element.plain =
     !element.key && !element.scopedSlots && !element.attrsList.length
 
