@@ -108,7 +108,7 @@ export function addHandler(
       range
     )
   }
-
+  // 1. 根据事件修饰符更改事件名称
   // normalize click.right and click.middle since they don't actually fire
   // this is technically browser-specific, but at least for now browsers are
   // the only target envs that have right/middle clicks.
@@ -142,6 +142,7 @@ export function addHandler(
     name = prependModifierMarker('&', name, dynamic)
   }
 
+  // 2. 给 AST 添加 events prop
   let events
   if (modifiers.native) {
     delete modifiers.native
@@ -150,6 +151,8 @@ export function addHandler(
     events = el.events || (el.events = {})
   }
 
+  // 3. 创建 handler 对象
+  // 创建 handler 对象,并添加给 handler对象 添加开始结束时的 index, 即 @click="count++" 在 html Str 中 @ 到 最后 " 这里的 idx, 其实也就是一个 attr 开始结束索引
   const newHandler: any = rangeSetItem({ value: value.trim(), dynamic }, range)
   if (modifiers !== emptyObject) {
     newHandler.modifiers = modifiers
@@ -157,6 +160,8 @@ export function addHandler(
 
   const handlers = events[name]
   /* istanbul ignore if */
+
+  // 4. 同一个标签可以绑定多个相同的事件名, event > 1 转换成数组
   if (Array.isArray(handlers)) {
     important ? handlers.unshift(newHandler) : handlers.push(newHandler)
   } else if (handlers) {

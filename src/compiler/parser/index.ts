@@ -268,7 +268,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
           }
         })
       }
-      // 禁止在模板中使用又副作用的 script， style 标签
+      // 禁止在模板中使用又副作用的 script， style 标签, script 标签及其内容也会被转换为 AST ，但是不会被存在最终生成的 AST 树中！！！
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         __DEV__ &&
@@ -820,6 +820,7 @@ function processAttrs(el) {
       } else if (modifiers) {
         name = name.replace(modifierRE, '')
       }
+      // 1. 处理使用 v-bind
       if (bindRE.test(name)) {
         // v-bind
         name = name.replace(bindRE, '')
@@ -887,9 +888,12 @@ function processAttrs(el) {
         } else {
           addAttr(el, name, value, list[i], isDynamic)
         }
-      } else if (onRE.test(name)) {
+      }
+      // 2. 处理绑定的事件
+      else if (onRE.test(name)) {
         // v-on
         name = name.replace(onRE, '')
+        // 处理动态属性 <div @[dynamicName]="handler">
         isDynamic = dynamicArgRE.test(name)
         if (isDynamic) {
           name = name.slice(1, -1)

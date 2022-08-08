@@ -75,7 +75,7 @@ export function parseHTML(html, options) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
     if (!lastTag || !isPlainTextElement(lastTag)) {
-      // isPlainTextElement = 如果 lastTag 是 script,style,textarea 标签返回 true，否则 undefined
+      // isPlainTextElement = 如果 lastTAg是 script,style,textarea 标签返回 true，否则 undefined
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
         // Comment:

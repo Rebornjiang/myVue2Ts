@@ -86,16 +86,17 @@ function genHandler(
     return `[${handler.map(handler => genHandler(handler)).join(',')}]`
   }
 
-  const isMethodPath = simplePathRE.test(handler.value)
-  const isFunctionExpression = fnExpRE.test(handler.value)
+  const isMethodPath = simplePathRE.test(handler.value) // method中的方法, 或是@click = "obj.fn" || @click="fnInMethod"
+  const isFunctionExpression = fnExpRE.test(handler.value) // 函数表达式: @click = "() => {}"
   const isFunctionInvocation = simplePathRE.test(
     handler.value.replace(fnInvokeRE, '')
-  )
+  ) // 匹配函数调用的情况 @click = "callFn()""
 
   if (!handler.modifiers) {
     if (isMethodPath || isFunctionExpression) {
       return handler.value
     }
+    // isMethodPath/isFunctionExpression/isFunctionInvocation  都为false, 只绑定了表达式,例如: @click="count++"
     return `function($event){${
       isFunctionInvocation ? `return ${handler.value}` : handler.value
     }}` // inline statement
