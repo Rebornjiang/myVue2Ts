@@ -495,6 +495,8 @@ export function processElement(element: ASTElement, options: CompilerOptions) {
   for (let i = 0; i < transforms.length; i++) {
     element = transforms[i](element, options) || element
   }
+
+  // 剩余的 el.attrsList 的内容可能就是 v-bind, v-on 语法
   processAttrs(element)
   return element
 }
