@@ -106,19 +106,27 @@ function remove(
 }
 
 function updateDOMListeners(oldVnode: VNodeWithData, vnode: VNodeWithData) {
+  // create触发时： oldVnode 为 empltyNode
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
   }
+  // 无论是 组件还是 html 元素都取 vnodeData.on, 按理说组件的原生事件被存在了 vnodeData.nativeOn 中，
+  // 这是因为在创建组件 vnode 的时候，对vnodeData 做了一层处理
   const on = vnode.data.on || {}
   const oldOn = oldVnode.data.on || {}
   // vnode is empty when removing all listeners,
   // and use old vnode dom element
   target = vnode.elm || oldVnode.elm
+  // 处理 v-model
   normalizeEvents(on)
+
   updateListeners(on, oldOn, add, remove, createOnceHandler, vnode.context)
   target = undefined
 }
-
+/**
+ * 事件相关的钩子 有 3个，分别在 patch 时，create，update，destory 阶段会被调用
+ * create：对于 当前 HTML 元素来说，在其子节点都被递归创建完成之后，并挂载到 当前 HTML DOM 上之后，调用 create 钩子
+ * */
 export default {
   create: updateDOMListeners,
   update: updateDOMListeners,

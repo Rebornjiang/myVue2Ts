@@ -69,6 +69,14 @@ export function createPatchFunction(backend) {
 
   // modules 用于给虚拟 dom 实现扩展功能
   // 初始化 dom 操作
+  /**
+   *
+   *cbs =  {
+   *  create：[evetnsModules中的 create 函数存在这里 ... otherModules]
+   *  update：[[evetnsModules中的 update 函数存在这里]
+   * }
+   *
+   * */
   const { modules, nodeOps } = backend
 
   for (i = 0; i < hooks.length; ++i) {
@@ -234,6 +242,7 @@ export function createPatchFunction(backend) {
       vnode.data.pendingInsert = null
     }
     vnode.elm = vnode.componentInstance.$el
+    // isPatchable 判断根据组件 vnode 生成的组件，该组件的模板中是不是 非组件 vnode，表示有内容
     if (isPatchable(vnode)) {
       invokeCreateHooks(vnode, insertedVnodeQueue)
       setScope(vnode)

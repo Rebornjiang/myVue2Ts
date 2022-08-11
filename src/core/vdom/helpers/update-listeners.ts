@@ -72,7 +72,10 @@ export function updateListeners(
   for (name in on) {
     cur = on[name]
     old = oldOn[name]
+    // normalizeEvent 是对 事件名作解析，在 parse 阶段时，
+    // 对于一些特定 modifier 会给 事件名进行添加额外的标记，如 click.passive => &click
     event = normalizeEvent(name)
+    // isUndef 更多是在手写 render 的情况
     if (isUndef(cur)) {
       __DEV__ &&
         warn(
@@ -81,13 +84,17 @@ export function updateListeners(
         )
     } else if (isUndef(old)) {
       if (isUndef(cur.fns)) {
+        // 重写 事件处理函数
         cur = on[name] = createFnInvoker(cur, vm)
       }
+
       if (isTrue(event.once)) {
         cur = on[name] = createOnceHandler(event.name, cur, event.capture)
       }
+
       add(event.name, cur, event.capture, event.passive, event.params)
     } else if (cur !== old) {
+      // update 钩子走这里，并且新旧 vnode handler 不一样
       old.fns = cur
       on[name] = old
     }
