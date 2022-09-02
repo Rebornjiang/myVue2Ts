@@ -489,8 +489,14 @@ export function processElement(element: ASTElement, options: CompilerOptions) {
     !element.key && !element.scopedSlots && !element.attrsList.length
 
   processRef(element)
+
+  // 父组件模板中，子组件的插槽内容
   processSlotContent(element)
+
+  // 子组件中定义的插槽出口
   processSlotOutlet(element)
+
+  // :is="componentName"
   processComponent(element)
   for (let i = 0; i < transforms.length; i++) {
     element = transforms[i](element, options) || element
@@ -904,17 +910,20 @@ function processAttrs(el) {
       } else {
         // normal directives
         name = name.replace(dirRE, '')
-        // parse arg
+        // parse arg 解析指令的参数 v-myDirective:foo
         const argMatch = name.match(argRE)
         let arg = argMatch && argMatch[1]
         isDynamic = false
         if (arg) {
           name = name.slice(0, -(arg.length + 1))
+
+          // 检测是否有动态指令
           if (dynamicArgRE.test(arg)) {
             arg = arg.slice(1, -1)
             isDynamic = true
           }
         }
+        // el.directives 存入当前指令
         addDirective(
           el,
           name,
