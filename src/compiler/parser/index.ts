@@ -723,6 +723,7 @@ function processSlotContent(el) {
       }
     } else {
       // v-slot on component, denotes default slot
+      // 仅有默认插槽才能够作用于子组件上
       const slotBinding = getAndRemoveAttrByRegex(el, slotRE)
       if (slotBinding) {
         if (__DEV__) {
