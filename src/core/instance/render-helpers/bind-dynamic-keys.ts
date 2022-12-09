@@ -14,6 +14,7 @@ export function bindDynamicKeys(
   values: Array<any>
 ): Object {
   for (let i = 0; i < values.length; i += 2) {
+    // key 为具体的事件名
     const key = values[i]
     if (typeof key === 'string' && key) {
       baseObj[values[i]] = values[i + 1]

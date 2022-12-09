@@ -29,8 +29,8 @@ const stripParensRE = /^\(|\)$/g
 const dynamicArgRE = /^\[.*\]$/
 
 const argRE = /:(.*)$/
-export const bindRE = /^:|^\.|^v-bind:/
 const propBindRE = /^\./
+export const bindRE = /^:|^\.|^v-bind:/
 const modifierRE = /\.[^.\]]+(?=[^\]]*$)/g
 
 const slotRE = /^v-slot(:|$)|^#/
@@ -76,7 +76,6 @@ export function createASTElement(
  */
 export function parse(template: string, options: CompilerOptions): ASTElement {
   warn = options.warn || baseWarn
-
   platformIsPreTag = options.isPreTag || no
   platformMustUseProp = options.mustUseProp || no
   platformGetTagNamespace = options.getTagNamespace || no
@@ -325,7 +324,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
       }
 
       if (!unary) {
-        // 非一元标签，将当前标签设置为 parent，在解析其子节点好建立父子关系
+        // 非一元标签，将当前标签设置为 parent ，在解析其子节点好建立父子关系
         currentParent = element
         // 这里与 parseHtml 中的 stack 变量用途应该是一样的
         stack.push(element)
@@ -347,7 +346,7 @@ export function parse(template: string, options: CompilerOptions): ASTElement {
       closeElement(element)
     },
     chars(text: string, start: number, end: number) {
-      // 处理标签内的 文本内容，
+      // 处理标签外的 文本内容，
       if (!currentParent) {
         if (__DEV__) {
           if (text === template) {

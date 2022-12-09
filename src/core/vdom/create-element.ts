@@ -91,6 +91,7 @@ export function _createElement(
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+
   // 如果是用户定义，既手写的 render 函数需要调用 normalizeChildren 方法来规范化所创建的 vnode的子节点，所得到的子节点类型必须保证是 vnode[]
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)

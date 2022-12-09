@@ -59,6 +59,7 @@ function add(
   // the solution is simple: we save the timestamp when a handler is attached,
   // and the handler would only fire if the event passed to it was fired
   // AFTER it was attached.
+  // https://coding.m.imooc.com/questiondetail?cid=228&qid=227968
   if (useMicrotaskFix) {
     const attachedTimestamp = currentFlushTimestamp
     const original = handler

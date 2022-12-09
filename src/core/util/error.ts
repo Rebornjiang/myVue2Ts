@@ -43,7 +43,7 @@ export function invokeWithErrorHandling(
     // 调用 watch 传入的 handler
     res = args ? handler.apply(context, args) : handler.call(context)
     if (res && !res._isVue && isPromise(res) && !res._handled) {
-      // 不允许在 handler 函数上使用 async & await
+      // 捕获异常并抛出异常
       res.catch(e => handleError(e, vm, info + ` (Promise/async)`))
       // issue #9511
       // avoid catch triggering multiple times when nested calls

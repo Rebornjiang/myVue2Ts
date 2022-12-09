@@ -362,6 +362,8 @@ export function stateMixin(Vue: Component) {
     options?: Record<string, any>
   ): Function {
     const vm: Component = this
+
+    // 处理用户定义的 watch
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }

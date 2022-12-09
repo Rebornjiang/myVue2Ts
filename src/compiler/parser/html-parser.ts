@@ -270,10 +270,13 @@ export function parseHTML(html, options) {
      * <div></div>
      * <p></p>
      * */
+    // expectHTML 选项开启之后将按照浏览器的容错机制进行编译模板
     if (expectHTML) {
+      // p标签嵌套非段落标签
       if (lastTag === 'p' && isNonPhrasingTag(tagName)) {
         parseEndTag(lastTag)
       }
+      // li标签内嵌套 li 标签
       if (canBeLeftOpenTag(tagName) && lastTag === tagName) {
         parseEndTag(tagName)
       }

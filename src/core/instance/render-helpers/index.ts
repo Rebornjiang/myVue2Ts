@@ -9,6 +9,7 @@ import { renderStatic, markOnce } from './render-static'
 import { bindObjectListeners } from './bind-object-listeners'
 import { resolveScopedSlots } from './resolve-scoped-slots'
 import { bindDynamicKeys, prependModifier } from './bind-dynamic-keys'
+import { createElement } from 'core/vdom/create-element'
 
 export function installRenderHelpers(target: any) {
   target._o = markOnce
@@ -28,4 +29,9 @@ export function installRenderHelpers(target: any) {
   target._g = bindObjectListeners
   target._d = bindDynamicKeys
   target._p = prependModifier
+  //
+  target._c = function (a, b, c, d) {
+    const vm = this
+    return createElement(vm, a, b, c, d, false)
+  }
 }

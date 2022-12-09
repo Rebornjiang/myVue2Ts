@@ -127,6 +127,7 @@ strats.data = function (
   childVal: any,
   vm?: Component
 ): Function | null {
+  // 子组件再创建子组件的构造函数时会命中这个条件
   if (!vm) {
     if (childVal && typeof childVal !== 'function') {
       __DEV__ &&
@@ -404,7 +405,6 @@ export function mergeOptions(
   if (__DEV__) {
     checkComponents(child)
   }
-
   if (typeof child === 'function') {
     // @ts-expect-error
     child = child.options

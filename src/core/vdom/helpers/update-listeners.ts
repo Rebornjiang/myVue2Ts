@@ -60,6 +60,7 @@ export function createFnInvoker(
   return invoker
 }
 
+// updateListeners 这个方法会用在 创建或是更新（组件自定义事件 和 原生dom 事件）这两个方法内，因此被抽象到 core 模块下的 helpers 这个目录下
 export function updateListeners(
   on: Object,
   oldOn: Object,
@@ -84,7 +85,7 @@ export function updateListeners(
         )
     } else if (isUndef(old)) {
       if (isUndef(cur.fns)) {
-        // 重写 事件处理函数
+        // 重写 事件处理函数的目的主要时为着更新事件考虑的，避免每次更新都需要重复的调用 DOM.addEventListeners
         cur = on[name] = createFnInvoker(cur, vm)
       }
 

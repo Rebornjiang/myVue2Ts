@@ -55,12 +55,17 @@ export function genHandlers(
   events: ASTElementHandlers,
   isNative: boolean
 ): string {
+  /**
+   * @[eventName]="fns" => {events: {eventName: {value: fns, dynamic: true}}}
+   * dynamicHandlers = eventName,fns,
+   * on: _d({},[eventName,fns])
+   * */
   const prefix = isNative ? 'nativeOn:' : 'on:'
   let staticHandlers = ``
   let dynamicHandlers = ``
   for (const name in events) {
     const handlerCode = genHandler(events[name])
-    //@ts-expect-error
+    //@ts-expect-error 语法强制要求：动态指令不允许绑定多个 handler
     if (events[name] && events[name].dynamic) {
       dynamicHandlers += `${name},${handlerCode},`
     } else {
@@ -69,6 +74,7 @@ export function genHandlers(
   }
   staticHandlers = `{${staticHandlers.slice(0, -1)}}`
   if (dynamicHandlers) {
+    // 动态与静态 handler 要调用 _d 方法拼接到一起, 这个 staticHandlers 在这个条件下相当于一个容器，_d 方法会把动态结果存入这个 容器 {} 中并返回
     return prefix + `_d(${staticHandlers},[${dynamicHandlers.slice(0, -1)}])`
   } else {
     return prefix + staticHandlers
@@ -113,6 +119,7 @@ function genHandler(
         }
       } else if (key === 'exact') {
         const modifiers = handler.modifiers
+        // 处理 exact 修饰符，如果点击了除了修饰的'ctrl', 'shift', 'alt', 'meta'的其他的按键，不触发事件
         genModifierCode += genGuard(
           ['ctrl', 'shift', 'alt', 'meta']
             .filter(keyModifier => !modifiers[keyModifier])
@@ -123,6 +130,7 @@ function genHandler(
         keys.push(key)
       }
     }
+    // 处理事件修饰符
     if (keys.length) {
       code += genKeyFilter(keys)
     }

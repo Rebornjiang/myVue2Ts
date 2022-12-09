@@ -164,6 +164,7 @@ export function defineReactive(
     enumerable: true,
     configurable: true,
     get: function reactiveGetter() {
+      console.log({ key })
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
         dep.depend()

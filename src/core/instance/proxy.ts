@@ -58,15 +58,21 @@ if (__DEV__) {
   const hasHandler = {
     has(target, key) {
       const has = key in target
+
+      // 允许访问全局成员 || vue实例的私有的 render-helpers 方法 例如：_c , _s, _v
       const isAllowed =
         allowedGlobals(key) ||
         (typeof key === 'string' &&
           key.charAt(0) === '_' &&
           !(key in target.$data))
+
+      console.log(key in target.$data, '是否存在')
       if (!has && !isAllowed) {
         if (key in target.$data) warnReservedPrefix(target, key)
         else warnNonPresent(target, key)
       }
+
+      // !isAllowed 之所以要取反是为了全局成员的，例如 String Infinity 等，若是不进行取反，has 方法返回true，接下来直接会从 vm 上找这些成员，没有就抛出 referenceError
       return has || !isAllowed
     }
   }
@@ -84,6 +90,11 @@ if (__DEV__) {
   initProxy = function initProxy(vm) {
     if (hasProxy) {
       // determine which proxy handler to use
+      /**
+       * Q:为什么在开发环境需要给 render 函数 内部的 this 作一层代理
+       * - 对于定义 options data 中的以 _ || $ 开始的属性,其实并没有被代理到 vm上，在 initData 中也没有给出警告提示，因为不确定你会用，当你使用这个属性那就要给出警告信息
+       * */
+
       const options = vm.$options
       const handlers =
         options.render && options.render._withStripped ? getHandler : hasHandler
