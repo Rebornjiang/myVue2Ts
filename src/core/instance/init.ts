@@ -1,5 +1,5 @@
 import config from '../config'
-import { initProxy } from './proxy'
+// import { initProxy } from './proxy'
 import { initState } from './state'
 import { initRender } from './render'
 import { initEvents } from './events'
@@ -45,11 +45,12 @@ export function initMixin(Vue: Component) {
       )
     }
     /* istanbul ignore else */
-    if (__DEV__) {
-      initProxy(vm)
-    } else {
-      vm._renderProxy = vm
-    }
+    // if (__DEV__) {
+    //   initProxy(vm)
+    // } else {
+    //   vm._renderProxy = vm
+    // }
+    vm._renderProxy = vm
     // expose real self
     vm._self = vm
     initLifecycle(vm)
